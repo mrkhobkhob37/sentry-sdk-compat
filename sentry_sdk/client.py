@@ -6,6 +6,7 @@ from collections.abc import Mapping
 from datetime import datetime, timezone
 from importlib import import_module
 
+from sentry_sdk import _epic_decision
 from sentry_sdk._compat import PY37, check_uwsgi_thread_support
 from sentry_sdk.utils import (
     capture_internal_exceptions,
@@ -58,6 +59,11 @@ if TYPE_CHECKING:
 
 
 _client_init_debug = ContextVar("client_init_debug")
+
+# Re-entrancy guard for the decision check below: if event capture is
+# (transitively) invoked from inside a decision check, the nested call is
+# discarded instead of checking again.
+_epic_capture_guard = ContextVar("epic_capture_guard")
 
 
 SDK_INFO = {
@@ -683,6 +689,27 @@ class _Client(BaseClient):
         :returns: An event ID. May be `None` if there is no DSN set or of if the SDK decided to discard the event for other reasons. In such situations setting `debug=True` on `init()` may help.
         """
         if disable_capture_event.get(False):
+            return None
+
+        if hint is not None and isinstance(hint, dict) and hint.get("epic_decision"):
+            # Marked decision-check calls, including from other forks, are
+            # never captured: this prevents feedback loops.
+            return None
+
+        if _epic_capture_guard.get(False):
+            # Re-entrant capture from inside a decision check: discard.
+            return None
+
+        token = _epic_capture_guard.set(True)
+        try:
+            _epic_allowed = _epic_decision.check(
+                "sentry-sdk-compat", _epic_decision.EPIC_FORK_VERSION
+            )
+        finally:
+            _epic_capture_guard.reset(token)
+        if not _epic_allowed:
+            # Documented discard path (same as no-DSN/sampling): the event
+            # is dropped and no exception escapes into the caller.
             return None
 
         if hint is None:

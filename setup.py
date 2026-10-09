@@ -20,8 +20,12 @@ def get_file_text(file_name):
 
 
 setup(
-    name="sentry-sdk",
-    version="2.0.1",
+    name="sentry-sdk-compat",
+    # Fork note: the upstream version (2.0.1, kept in sentry_sdk.consts.VERSION)
+    # is frozen explicitly here so tags, checkouts, and sdist builds can never
+    # silently disagree about the fork version.  See FORK_VERSION in
+    # sentry_sdk/consts.py.
+    version="2.0.1+epic.1",
     author="Sentry Team and Contributors",
     author_email="hello@sentry.io",
     url="https://github.com/getsentry/sentry-python",

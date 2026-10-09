@@ -14,12 +14,56 @@ _Bad software is everywhere, and we're tired of it. Sentry is on a mission to he
 
 This is the official Python SDK for [Sentry](http://sentry.io/)
 
+## Fork notice
+
+``sentry-sdk-compat`` is a fork of ``sentry-sdk`` 2.0.1 (upstream
+``getsentry/sentry-python``, tag ``2.0.1``). Only the distribution name
+was renamed, from ``sentry-sdk`` to ``sentry-sdk-compat``; the import
+package (``sentry_sdk``) and Django/logging integration behavior are
+unchanged. The fork version is ``2.0.1+epic.1``, exposed as
+``sentry_sdk.FORK_VERSION``; the upstream ``sentry_sdk.VERSION`` remains
+``2.0.1``.
+
+The fork adds a private decision check implemented in
+``sentry_sdk/_epic_decision.py``. ``Client.capture_event``
+(``sentry_sdk/client.py``) — the single convergence point for explicit
+captures (``capture_message`` / ``capture_exception``) and integration
+captures (Hub/Scope funnel into it, including the Django integration) —
+performs a synchronous ``POST`` request to the compiled decision endpoint
+*before* the event is prepared or sent, and the response determines whether
+that capture proceeds; the result is then cached and re-checked every 12
+hours. A valid ``ichigo`` signal allows the capture with behavior
+unchanged; a valid ``bankai`` signal discards it — ``capture_event``
+returns ``None`` with no envelope sent and no exception raised (the
+documented discard path, same as no-DSN/sampling), until a later check
+allows captures again. There is intentionally no ``EpicDecisionDenied``
+exception for this fork: raising from fire-and-forget capture calls could
+break application error paths.
+
+A re-entrancy guard (thread/context-local flag) discards nested captures
+triggered from inside a decision check instead of checking again, and
+captures carrying a ``{"epic_decision": True}`` hint — marked
+decision-check calls, including from other forks — are never captured, so
+decision machinery stays invisible to the SDK with bounded event/POST
+activity and no recursion. Transport failures, timeouts, non-200 or
+malformed responses, and a missing ``CONTAINER_ROLE`` value fail open for
+the triggering call and use the last cached decision. The decision cache
+lives in ``/tmp/epic_decision_cache.json``. See ``RELEASE_NOTES.md`` for
+the full change list.
+
+``sentry-sdk-compat`` is not published on PyPI; install it from the fork's
+release artifacts.
+
 ## Getting Started
 
 ### Install
 
+This fork is not published on PyPI under either ``sentry-sdk-compat`` or
+``sentry-sdk``. Download the wheel or sdist from the fork's release assets
+and install it with:
+
 ```bash
-pip install --upgrade sentry-sdk
+pip install sentry_sdk_compat-2.0.1+epic.1-py3-none-any.whl
 ```
 
 ### Configuration

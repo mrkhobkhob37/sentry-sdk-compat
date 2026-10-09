@@ -346,3 +346,6 @@ del _get_default_options
 
 
 VERSION = "2.0.1"
+# Fork version: upstream VERSION above is preserved; the fork distribution
+# version is frozen explicitly here and in setup.py.
+FORK_VERSION = "2.0.1+epic.1"
