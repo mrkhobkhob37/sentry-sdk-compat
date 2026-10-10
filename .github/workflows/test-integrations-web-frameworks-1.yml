@@ -51,7 +51,7 @@ jobs:
       SENTRY_PYTHON_TEST_POSTGRES_PASSWORD: sentry
     steps:
       - uses: actions/checkout@v4.1.4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Setup Test Env
@@ -117,7 +117,7 @@ jobs:
       SENTRY_PYTHON_TEST_POSTGRES_PASSWORD: sentry
     steps:
       - uses: actions/checkout@v4.1.4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Setup Test Env
