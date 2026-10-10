@@ -51,7 +51,7 @@ jobs:
       SENTRY_PYTHON_TEST_POSTGRES_PASSWORD: sentry
     steps:
       - uses: actions/checkout@v4.1.4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - uses: getsentry/action-clickhouse-in-ci@v1
@@ -126,7 +126,7 @@ jobs:
       SENTRY_PYTHON_TEST_POSTGRES_PASSWORD: sentry
     steps:
       - uses: actions/checkout@v4.1.4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - uses: getsentry/action-clickhouse-in-ci@v1
