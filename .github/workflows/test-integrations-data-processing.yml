@@ -70,7 +70,7 @@ jobs:
         run: |
           coverage combine .coverage*
           coverage xml -i
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
@@ -126,7 +126,7 @@ jobs:
         run: |
           coverage combine .coverage*
           coverage xml -i
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
